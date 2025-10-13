@@ -22,12 +22,12 @@ namespace api.Repository
                 stocks = stocks.Where(x => x.Symbol.Contains(symbol, StringComparison.OrdinalIgnoreCase));
             }
 
-            return await stocks.OrderByDescending(x => x.Id).ToListAsync();
+            return await stocks.OrderByDescending(x => x.Id).Include(x => x.Comments).ToListAsync();
         }
 
         public async Task<Stock?> GetAsync(int id)
         {
-            var stock = await context.Stocks.FindAsync(id);
+            var stock = await context.Stocks.Include(x => x.Comments).FirstOrDefaultAsync(x => x.Id == id);
             return stock;
         }
         
