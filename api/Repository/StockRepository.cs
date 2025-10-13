@@ -19,7 +19,7 @@ namespace api.Repository
 
             if (!string.IsNullOrWhiteSpace(symbol))
             {
-                stocks = stocks.Where(x => x.Symbol.ToLower().Contains(symbol.ToLower()));
+                stocks = stocks.Where(x => x.Symbol.Contains(symbol, StringComparison.OrdinalIgnoreCase));
             }
 
             return await stocks.OrderByDescending(x => x.Id).ToListAsync();
@@ -30,6 +30,7 @@ namespace api.Repository
             var stock = await context.Stocks.FindAsync(id);
             return stock;
         }
+        
         public async Task<Stock> CreateAsync(StockRequestDto stockRequestDto)
         {
             var stock = stockRequestDto.ToStockRequestDto();
@@ -53,7 +54,7 @@ namespace api.Repository
             return stock;
         }
 
-        public async Task<Boolean?> DeleteAsync(int id)
+        public async Task<bool?> DeleteAsync(int id)
         {
             var stock = await context.Stocks.FindAsync(id);
             if (stock is null)
