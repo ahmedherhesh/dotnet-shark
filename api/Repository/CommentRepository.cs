@@ -23,20 +23,21 @@ namespace api.Repository
             return await context.Comments.FindAsync(id);
         }
 
-        public async Task<Comment> CreateAsync(CommentRequestDto commentRequestDto)
+        public async Task<Comment> CreateAsync(Stock stock, CommentRequestDto commentRequestDto)
         {
-            var comment =  commentRequestDto.ToCommentRequestDto();
-            await context.Comments.AddAsync(comment);
+            var comment = commentRequestDto.ToCommentRequestDto();
+            stock.Comments.Add(comment);
             await context.SaveChangesAsync();
             return comment;
         }
 
-        public async Task<Comment?> UpdateAsync(int id, CommentRequestDto commentRequestDto)
+        public async Task<Comment?> UpdateAsync(int id, int? stockId, CommentRequestDto commentRequestDto)
         {
             var comment = await GetAsync(id);
             if (comment is null)
                 return null;
-            comment.StockId = commentRequestDto.StockId;
+            if (stockId is not null)
+                comment.StockId = stockId;
             comment.Title = commentRequestDto.Title;
             comment.Content = commentRequestDto.Content;
             await context.SaveChangesAsync();

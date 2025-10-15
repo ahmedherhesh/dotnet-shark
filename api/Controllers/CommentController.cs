@@ -11,7 +11,7 @@ namespace api.Controllers
 {
     [Route("api/comments")]
     [ApiController]
-    public class CommentController(ICommentRepository commentRepo) : ControllerBase
+    public class CommentController(IStockRepository stockRepo, ICommentRepository commentRepo) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetAll()
@@ -29,17 +29,28 @@ namespace api.Controllers
             return Ok(comment.ToCommentDto());
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CommentRequestDto commentRequestDto)
+        [HttpPost("{stockId}")]
+        public async Task<IActionResult> Create([FromRoute] int stockId, [FromBody] CommentRequestDto commentRequestDto)
         {
-            var comment = await commentRepo.CreateAsync(commentRequestDto);
+            var stock = await stockRepo.GetAsync(stockId);
+            if (stock is null)
+                return BadRequest("Stock not found");
+
+            var comment = await commentRepo.CreateAsync(stock, commentRequestDto);
             return Ok(comment.ToCommentDto());
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] CommentRequestDto commentRequestDto)
+        public async Task<IActionResult> Update([FromRoute] int id, [FromQuery] int? stockId, [FromBody] CommentRequestDto commentRequestDto)
         {
-            var comment = await commentRepo.UpdateAsync(id, commentRequestDto);
+            if (stockId is not null)
+            {
+                var stock = await stockRepo.GetAsync(stockId.Value);
+                if (stock is null)
+                    return BadRequest("Stock not found");
+            }
+            
+            var comment = await commentRepo.UpdateAsync(id, stockId, commentRequestDto);
             if (comment is null)
                 return NotFound();
             return Ok(comment.ToCommentDto());
