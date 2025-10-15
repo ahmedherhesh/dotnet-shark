@@ -43,15 +43,11 @@ namespace api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromQuery] int? stockId, [FromBody] CommentRequestDto commentRequestDto)
         {
-            if (stockId is not null)
-            {
-                var stock = await stockRepo.GetAsync(stockId.Value);
-                if (stock is null)
-                    return BadRequest("Stock not found");
-            }
+            if (stockId != null && (await stockRepo.StockExists(stockId.Value)) == false)
+                return BadRequest("Stock not found");
             
             var comment = await commentRepo.UpdateAsync(id, stockId, commentRequestDto);
-            if (comment is null)
+            if (comment == null)
                 return NotFound();
             return Ok(comment.ToCommentDto());
         }
