@@ -21,9 +21,9 @@ namespace api.Repository
             // string[] allowedSortBy = {"Id", "Symbol", "CompanyName", "CreatedAt" };
 
             if (!string.IsNullOrWhiteSpace(query.Symbol))
-                stocks = stocks.Where(x => x.Symbol.Contains(query.Symbol, StringComparison.OrdinalIgnoreCase));
+                stocks = stocks.Where(x => x.Symbol.Contains(query.Symbol));
             if (!string.IsNullOrWhiteSpace(query.CompanyName))
-                stocks = stocks.Where(x => x.CompanyName.Contains(query.CompanyName, StringComparison.OrdinalIgnoreCase));
+                stocks = stocks.Where(x => x.CompanyName.Contains(query.CompanyName));
             if (!string.IsNullOrWhiteSpace(query.SortBy))
             {
                 if (query.SortBy.Equals("Id", StringComparison.OrdinalIgnoreCase))
