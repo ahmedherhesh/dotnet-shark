@@ -26,15 +26,17 @@ namespace api.Repository
                 stocks = stocks.Where(x => x.CompanyName.Contains(query.CompanyName, StringComparison.OrdinalIgnoreCase));
             if (!string.IsNullOrWhiteSpace(query.SortBy))
             {
-                 if (query.SortBy.Equals("Id", StringComparison.OrdinalIgnoreCase))
-                        stocks = query.IsDecsending ? stocks.OrderByDescending(x => x.Id) : stocks.OrderBy(x => x.Id);
+                if (query.SortBy.Equals("Id", StringComparison.OrdinalIgnoreCase))
+                    stocks = query.IsDecsending ? stocks.OrderByDescending(x => x.Id) : stocks.OrderBy(x => x.Id);
                 // foreach (string sortBy in allowedSortBy)
                 // {
                 //     if (query.SortBy.Equals(sortBy, StringComparison.OrdinalIgnoreCase))
                 //         stocks = query.IsDecsending ? stocks.OrderByDescending(x => x.GetType().GetProperty(sortBy).GetValue(x)) : stocks.OrderBy(x => x.GetType().GetProperty(sortBy).GetValue(x));
                 // }
             }
-            return await stocks.Include(x => x.Comments).ToListAsync();
+            
+            int skipNumber = (query.PageNumber - 1) * query.PageSize;
+            return await stocks.Skip(skipNumber).Take(query.PageSize).Include(x => x.Comments).ToListAsync();
         }
 
         public async Task<Stock?> GetAsync(int id)

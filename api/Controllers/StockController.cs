@@ -14,7 +14,7 @@ namespace api.Controllers
 {
     [Route("api/stocks")]
     [ApiController]
-    public class StockController(ApplicationDBContext context, IStockRepository stockRepo) : ControllerBase
+    public class StockController(IStockRepository stockRepo) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] QueryObject query)
