@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using api.Data;
 using api.Dtos.Stock;
+using api.Helpers;
 using api.Interfaces;
 using api.Mappers;
 using api.Models;
@@ -13,16 +14,27 @@ namespace api.Repository
 {
     public class StockRepository(ApplicationDBContext context) : IStockRepository
     {
-        public async Task<List<Stock>> GetAllAsync(string? symbol)
+        public async Task<List<Stock>> GetAllAsync(QueryObject query)
         {
             var stocks = context.Stocks.AsQueryable();
 
-            if (!string.IsNullOrWhiteSpace(symbol))
-            {
-                stocks = stocks.Where(x => x.Symbol.Contains(symbol, StringComparison.OrdinalIgnoreCase));
-            }
+            // string[] allowedSortBy = {"Id", "Symbol", "CompanyName", "CreatedAt" };
 
-            return await stocks.OrderByDescending(x => x.Id).Include(x => x.Comments).ToListAsync();
+            if (!string.IsNullOrWhiteSpace(query.Symbol))
+                stocks = stocks.Where(x => x.Symbol.Contains(query.Symbol, StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(query.CompanyName))
+                stocks = stocks.Where(x => x.CompanyName.Contains(query.CompanyName, StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(query.SortBy))
+            {
+                 if (query.SortBy.Equals("Id", StringComparison.OrdinalIgnoreCase))
+                        stocks = query.IsDecsending ? stocks.OrderByDescending(x => x.Id) : stocks.OrderBy(x => x.Id);
+                // foreach (string sortBy in allowedSortBy)
+                // {
+                //     if (query.SortBy.Equals(sortBy, StringComparison.OrdinalIgnoreCase))
+                //         stocks = query.IsDecsending ? stocks.OrderByDescending(x => x.GetType().GetProperty(sortBy).GetValue(x)) : stocks.OrderBy(x => x.GetType().GetProperty(sortBy).GetValue(x));
+                // }
+            }
+            return await stocks.Include(x => x.Comments).ToListAsync();
         }
 
         public async Task<Stock?> GetAsync(int id)
@@ -30,7 +42,7 @@ namespace api.Repository
             var stock = await context.Stocks.Include(x => x.Comments).FirstOrDefaultAsync(x => x.Id == id);
             return stock;
         }
-        
+
         public async Task<Stock> CreateAsync(StockRequestDto stockRequestDto)
         {
             var stock = stockRequestDto.ToStockRequestDto();
