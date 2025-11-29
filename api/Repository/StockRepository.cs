@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
 using api.Data;
 using api.Dtos.Stock;
@@ -18,7 +19,7 @@ namespace api.Repository
         {
             var stocks = context.Stocks.AsQueryable();
 
-            // string[] allowedSortBy = {"Id", "Symbol", "CompanyName", "CreatedAt" };
+            string[] allowedSortBy = ["Id", "Symbol", "CompanyName", "Purchase", "CreatedAt"];
 
             if (!string.IsNullOrWhiteSpace(query.Symbol))
                 stocks = stocks.Where(x => x.Symbol.Contains(query.Symbol));
@@ -28,13 +29,13 @@ namespace api.Repository
             {
                 if (query.SortBy.Equals("Id", StringComparison.OrdinalIgnoreCase))
                     stocks = query.IsDecsending ? stocks.OrderByDescending(x => x.Id) : stocks.OrderBy(x => x.Id);
-                // foreach (string sortBy in allowedSortBy)
-                // {
-                //     if (query.SortBy.Equals(sortBy, StringComparison.OrdinalIgnoreCase))
-                //         stocks = query.IsDecsending ? stocks.OrderByDescending(x => x.GetType().GetProperty(sortBy).GetValue(x)) : stocks.OrderBy(x => x.GetType().GetProperty(sortBy).GetValue(x));
-                // }
+                foreach (string sortBy in allowedSortBy)
+                {
+                    if (query.SortBy.Equals(sortBy, StringComparison.OrdinalIgnoreCase))
+                        stocks = stocks.OrderBy($"{sortBy} {(query.IsDecsending ? "desc" : "asc")}");
+                }
             }
-            
+
             int skipNumber = (query.PageNumber - 1) * query.PageSize;
             return await stocks.Skip(skipNumber).Take(query.PageSize).Include(x => x.Comments).ToListAsync();
         }
