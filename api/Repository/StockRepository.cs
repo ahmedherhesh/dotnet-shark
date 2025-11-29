@@ -25,16 +25,9 @@ namespace api.Repository
                 stocks = stocks.Where(x => x.Symbol.Contains(query.Symbol));
             if (!string.IsNullOrWhiteSpace(query.CompanyName))
                 stocks = stocks.Where(x => x.CompanyName.Contains(query.CompanyName));
-            if (!string.IsNullOrWhiteSpace(query.SortBy))
-            {
-                if (query.SortBy.Equals("Id", StringComparison.OrdinalIgnoreCase))
-                    stocks = query.IsDecsending ? stocks.OrderByDescending(x => x.Id) : stocks.OrderBy(x => x.Id);
-                foreach (string sortBy in allowedSortBy)
-                {
-                    if (query.SortBy.Equals(sortBy, StringComparison.OrdinalIgnoreCase))
-                        stocks = stocks.OrderBy($"{sortBy} {(query.IsDecsending ? "desc" : "asc")}");
-                }
-            }
+
+            if (query.SortBy.HasValue)
+                stocks = stocks.OrderBy($"{query.SortBy.Value} {(query.IsDecsending ? "desc" : "asc")}");
 
             int skipNumber = (query.PageNumber - 1) * query.PageSize;
             return await stocks.Skip(skipNumber).Take(query.PageSize).Include(x => x.Comments).ToListAsync();
